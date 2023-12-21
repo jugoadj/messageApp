@@ -1,7 +1,7 @@
 import './App.css';
+import Connexion from "./Pages/connexion";
 import { Route } from "react-router-dom" // importé le composant Route (<Route/>)de la bibliothèque react-router-dom
 import ChatPage from "./Pages/chatPage"; //on import le composant chatPage (const chatPage = ()=>{..}) qu'on a importe de chatPage.js
-import Connexion from "./Pages/connexion";
 import Landingpage from './Pages/landingpage';
 
 function App() {

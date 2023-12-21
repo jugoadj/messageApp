@@ -6,7 +6,6 @@ import { useState } from "react";
 import axios from "axios";
 import { useToast } from "@chakra-ui/react";
 import { useHistory } from "react-router-dom";
-import { ChatState } from "../../Context/ChatProvider";
 
 const Login = () => {
   const [show, setShow] = useState(false);
@@ -17,7 +16,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const history = useHistory();
-  const { setUser } = ChatState();
 
   const submitHandler = async () => {
     setLoading(true);
@@ -34,16 +32,16 @@ const Login = () => {
     }
 
     try {
-      const config = {
+      const config = { //éfinit un objet config qui contient des en-têtes HTTP pour une requête.
         headers: {
-          "Content-type": "application/json",
+          "Content-type": "application/json",//ndique que le corps de la requête sera du JSON
         },
       };
 
       const { data } = await axios.post(
         "/api/user/login",
         { email, password },
-        config
+        config // config est un objet qui contient des en-têtes HTTP pour une requête.
       );
 
       toast({
@@ -53,10 +51,9 @@ const Login = () => {
         isClosable: true,
         position: "bottom",
       });
-      setUser(data);
-      localStorage.setItem("userInfo", JSON.stringify(data));
+      localStorage.setItem("userInfo", JSON.stringify(data));//stocker les informations de l'utilisateur dans le stockage local
       setLoading(false);
-      history.push("/chats");
+      history.push("/chats");//rediriger l'utilisateur vers la page "/chats"
     } catch (error) {
       toast({
         title: "Error Occured!",
@@ -98,7 +95,10 @@ const Login = () => {
         </InputGroup>
       </FormControl>
       <Button
-        colorScheme="blue"
+        // colorScheme="blue"
+        variant="solid"
+        bgColor={"black"}
+        color={"white"}
         width="100%"
         style={{ marginTop: 15 }}
         onClick={submitHandler}
@@ -106,16 +106,16 @@ const Login = () => {
       >
         Login
       </Button>
-      <Button
+      <Button // pour avoir un example dun useer sans avoir a le creer utile pour la presentation du projet
         variant="solid"
-        colorScheme="red"
+        colorScheme="blue"
         width="100%"
         onClick={() => {
           setEmail("guest@example.com");
           setPassword("123456");
         }}
       >
-        Get Guest User Credentials
+        example user
       </Button>
     </VStack>
   );

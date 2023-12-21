@@ -23,9 +23,9 @@ function Connexion() {
   useEffect(() => {// Un effet est utilisé pour rediriger l'utilisateur vers la page "/chats" si des informations d'utilisateur sont 
     //présentes dans le stockage local (localStorage). Cet effet est déclenché après le rendu initial du composant, car il dépend de 
     //history et est ajouté comme dépendance à useEffect
-    const user = JSON.parse(localStorage.getItem("userInfo"));
+    const user = JSON.parse(localStorage.getItem("userInfo"));// userInfo est une clé dans le stockage local qui contient les informations de l'utilisateur connecté on la creee dans login.js. le loca
 
-    if (user) history.push("/chats");
+    if (user) history.push("/chats"); //si l'utilisateur est connecté (ses info userinfo sont dans le localstorage) on le redirige vers la page chats
   }, [history]);
 
   return ( //la fonction connexion retourne Contenu JSX : Le reste de la fonction définit la structure de la page. Il utilise des composants de mise en page tels que 
@@ -33,7 +33,7 @@ function Connexion() {
   //pour basculer entre les composants de connexion (Login) et d'inscription (Signup).
     <Container  maxW="xl" centerContent >
       <Box
-        d="flex"
+        display="flex"
         justifyContent="center"
         p={3}
         color="#B08085"
@@ -59,7 +59,7 @@ function Connexion() {
               <Login /> {/**lecomposant login qu'on a importe de login.js */}
             </TabPanel>
             <TabPanel>
-              <Signup />
+              <Signup /> {/**lecomposant signup qu'on a importe de signup.js */}
             </TabPanel>
           </TabPanels>
         </Tabs>

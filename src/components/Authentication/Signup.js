@@ -14,24 +14,27 @@ const Signup = () => {
   // état local, indépendant des autres composants, ce qui permet de stocker et de mettre à jour des valeurs spécifiques à ce composant.
 
   const handleClick = () => setShow(!show); //Fonction pour basculer l'affichage/masquage du mot de passe lorsqu'on clique sur le bouton "Show/Hide".
+  
   const toast = useToast();
-  const history = useHistory(); //objet historique, vous permettant de naviguer entre différentes vues ou pages dans une application monopage (SPA).
+  const history = useHistory(); //Utilisation de l'objet history pour rediriger l'utilisateur vers une autre page après une inscription réussie.
 
   const [name, setName] = useState(); //Déclaration d'état local pour stocker le valeur du champs name du formulaire.
-  const [email, setEmail] = useState();//
+  const [email, setEmail] = useState();// Déclaration d'état local pour stocker le valeur du champs email du formulaire.
   const [confirmpassword, setConfirmpassword] = useState();
   const [password, setPassword] = useState();
   const [pic, setPic] = useState();
   const [picLoading, setPicLoading] = useState(false);
 
   const submitHandler = async () => {
-//     Gère la soumission du formulaire d'inscription.
+// Gère la soumission du formulaire d'inscription. vers lurl axios.post("/api/user",
 // Vérifie que tous les champs obligatoires sont remplis.
 // Vérifie que les mots de passe correspondent.
-// Envoie une requête POST au serveur avec les informations d'inscription (nom, email, mot de passe, image).
+// 
+// /Envoie une requête POST au serveur avec les informations d'inscription (nom, email, mot de passe, image).///
+//
 // Stocke les informations de l'utilisateur dans le stockage local.
 // Redirige l'utilisateur vers la page "/chats" après une inscription réussie.
-    setPicLoading(true);
+    setPicLoading(true);//picLoading est un état dans un composant React qui est utilisé pour suivre si une image est en cours de chargement ou non.
     if (!name || !email || !password || !confirmpassword) {
       toast({
         title: "Please Fill all the Feilds",
@@ -60,8 +63,7 @@ const Signup = () => {
           "Content-type": "application/json",
         },
       };
-      const { data } = await axios.post(
-        "/api/user",
+      const { data } = await axios.post( "/api/user",
         {
           name,
           email,
@@ -70,7 +72,7 @@ const Signup = () => {
         },
         config
       );
-      console.log(data);
+      console.log(data); //Affiche les données de l'utilisateur dans la console. Ces données sont probablement la réponse d'une requête d'inscription réussie.
       toast({
         title: "Registration Successful",
         status: "success",
@@ -78,9 +80,11 @@ const Signup = () => {
         isClosable: true,
         position: "bottom",
       });
-      localStorage.setItem("userInfo", JSON.stringify(data));
+      localStorage.setItem("userInfo", JSON.stringify(data)); //Enregistre les données de l'utilisateur dans le stockage local du navigateur. Cela permet de persister les données de l'utilisateur même après que la page a été rechargée.
       setPicLoading(false);
-      history.push("/chats");
+      history.push("/chats"); //Redirige l'utilisateur vers la page "/chats" après une inscription réussie.
+
+
     } catch (error) {
       toast({
         title: "Error Occured!",
@@ -96,28 +100,31 @@ const Signup = () => {
 
   const postDetails = (pics) => { //Fonction pour gérer le téléchargement de l'image du profil. Elle utilise l'API Cloudinary pour télécharger l'image et stocke l'URL de l'image dans l'état local pic
     setPicLoading(true);
-    if (pics === undefined) {
-      toast({
+    if (pics === undefined) { // si lutilisateur na pas choisi dimage
+      toast({ //on affiche un toast de chakraui pour lui dire de choisir une image
         title: "Please Select an Image!",
         status: "warning",
         duration: 5000,
         isClosable: true,
         position: "bottom",
       });
-      return;
+      return; //on sort de la fonction
     }
     console.log(pics);
-    if (pics.type === "image/jpeg" || pics.type === "image/png") {
-      const data = new FormData();
+    //télécharger une image sur Cloudinary, un service de stockage d'images dans le cloud
+    if (pics.type === "image/jpeg" || pics.type === "image/png") { //si le type de l'image (pics.type) est "image/jpeg" ou "image/png". Si ce n'est pas le cas, le code ne fait rien.
+      const data = new FormData();//S'il s'agit d'une image JPEG ou PNG, il crée un nouvel objet FormData. FormData est utilisé pour envoyer des données de formulaire encodées en multipart/form-data via AJAX.
       data.append("file", pics);
       data.append("upload_preset", "chat-app");
-      data.append("cloud_name", "piyushproj");
-      fetch("https://api.cloudinary.com/v1_1/piyushproj/image/upload", {
+      data.append("cloud_name", "dnorktqq7");//ajoute l'image, un "upload_preset" et un "cloud_name" à l'objet FormData. L'"upload_preset" est un ensemble de paramètres de téléchargement prédéfinis, et le "cloud_name" est le nom de votre compte Cloudinary.
+      fetch("https://api.cloudinary.com/v1_1/dnorktqq7/image/upload", { // Cloudinary est utilisé pour télécharger (ou "uploader") une image depuis votre application vers le cloud. Une fois l'image téléchargée sur Cloudinary, elle est stockée de manière sécurisée et peut être facilement récupérée ou partagée grâce à une URL unique fournie par Cloudinary.
         method: "post",
         body: data,
+        //Stockage et sauvegarde : Cloudinary stocke vos fichiers multimédias sur le cloud, ce qui signifie que vous n'avez pas à vous soucier de la gestion du stockage sur votre propre serveur.
       })
         .then((res) => res.json())
-        .then((data) => {
+        .then((data) => {//.then(), data est l'objet JSON renvoyé par l'API de Cloudinary. Cet objet contient plusieurs propriétés, dont url qui est l'URL de l'image téléchargée. Vous pouvez utiliser cette URL pour récupérer l'image.
+// Vous utilisez la fonction setPic(data.url.toString()) pour enregistrer l'URL de l'image dans l'état de votre application, ce qui signifie que vous pouvez l'utiliser plus tard pour afficher l'image ou la partager.
           setPic(data.url.toString());
           console.log(data.url.toString());
           setPicLoading(false);
@@ -204,7 +211,7 @@ const Signup = () => {
         bg="#293741" color="#B08085"
         width="100%"
         style={{ marginTop: 15 }}
-        onClick={submitHandler}
+        onClick={submitHandler} //quand on click sur le bouton submitHandler est appele qui est une fonction qui va envoyer les donnees de lutilisateur avec axios.post 
         isLoading={picLoading}
       >
         Sign Up
