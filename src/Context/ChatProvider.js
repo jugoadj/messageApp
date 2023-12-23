@@ -5,7 +5,7 @@ import { useHistory } from "react-router-dom";
 const ChatContext = createContext();//
 
 const ChatProvider = ({ children }) => {
-  const [selectedChat, setSelectedChat] = useState();  
+  const [selectedChat, setSelectedChat] = useState();  // 
   const [supselectedChat, setSupselectedChat] = useState();  
   const [user, setUser] = useState();
   const [notification, setNotification] = useState([]);
@@ -27,7 +27,7 @@ const ChatProvider = ({ children }) => {
     <ChatContext.Provider // ChatContext.Provider est un composant qui permet à tous ses enfants d'accéder aux valeurs passées dans la prop value
       value={{
         selectedChat, //selectedChat est une variable d'état qui contient les détails du chat sélectionné par l'utilisateur.
-        setSelectedChat,//
+        setSelectedChat,//setSelectedChat est une fonction qui met à jour la variable d'état selectedChat.
         supselectedChat,
         setSupselectedChat,
         user, 

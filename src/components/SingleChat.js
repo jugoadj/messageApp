@@ -1,6 +1,9 @@
 import { Input } from "@chakra-ui/input";
 import { Box, Text} from "@chakra-ui/layout";
 import { FaRegComment } from "react-icons/fa";
+import { InputGroup, InputRightElement, InputLeftElement} from "@chakra-ui/react";
+import {  FiFile,FiSend, FiSmile } from "react-icons/fi";
+
 
 import { IconButton , Icon} from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
@@ -179,15 +182,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             <IconButton
               display={{ base: "flex", md: "none" }}
               icon={<ArrowBackIcon />}
-              onClick={() => setSelectedChat("")}  
+              onClick={() => setSelectedChat("")}  //lorsque l'utilisateur clique sur le bouton de retour, il met à jour l'état selectedChat avec une chaîne vide.
             />
-            {messages &&
-// sourcery skip: invert-ternary
+            {messages && //Si des messages sont disponibles, le composant affiche le nom de l'expéditeur du dernier message.
+
               (!selectedChat.isGroupChat ? (
                 <>
                   {getSender(user, selectedChat.users)}
                   <ProfileModal
-                    user={getSenderFull(user, selectedChat.users)}
+                    user={getSenderFull(user, selectedChat.users)}//getSenderFull est une fonction qui renvoie l'objet utilisateur complet de l'expéditeur du dernier message.
                   />
                 </>
               ) : (
@@ -227,40 +230,36 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             )}
 
             <FormControl
-              onKeyDown={sendMessage}
+              onKeyDown={sendMessage} //lorsque l'utilisateur appuie sur une touche, la fonction sendMessage est appelée.
               id="first-name"
               isRequired
               mt={3}
             >
-              {/* {istyping ? (
-                <div>
-                  <Lottie
-                    options={defaultOptions}
-                    // height={50}
-                    width={70}
-                    style={{ marginBottom: 15, marginLeft: 0 }}
-                  />
-                </div>
-              ) : (
-                <></>
-              )} */}
-              <Input
-                variant="filled"
-                bg="#3A3B3C"
-                color={"white"}
-                placeholder="Enter a message.."
-                value={newMessage}
-                onChange={typingHandler}
-                _hover={{
-                  bg: "#3A3B3C",
-                }}
-                _focus={{
-                      borderColor: "transparent",
-
-                }}
-
-               
-              />
+             
+             <InputGroup>
+              
+                <Input
+                  variant="filled"
+                  bg="#3A3B3C"
+                  color={"white"}
+                  placeholder="Enter a message.."
+                  value={newMessage}
+                  onChange={typingHandler}
+                  _hover={{
+                    bg: "#3A3B3C",
+                  }}
+                  _focus={{
+                    borderColor: "transparent",
+                  }}
+                />
+                    <Box display="flex" justifyContent={"space-between"}>
+                      <IconButton aria-label="Fichier" icon={<FiFile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={sendMessage} />
+                      <IconButton aria-label="Emoji" icon={<FiSmile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} />
+                      <IconButton   aria-label="Envoyer" icon={<FiSend />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={sendMessage} />
+                    </Box>
+                
+                
+              </InputGroup>
              
 
             </FormControl>

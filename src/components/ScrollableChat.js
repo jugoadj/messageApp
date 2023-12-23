@@ -77,6 +77,7 @@ import {  FaFilePdf } from 'react-icons/fa'; // Importer l'icône de fichier
 import { Avatar } from "@chakra-ui/avatar";
 import { Tooltip } from "@chakra-ui/tooltip";
 import ScrollableFeed from "react-scrollable-feed";
+import LinkPreviewComponent from '../components/LinkPreviewComponent';
 import {
   isLastMessage,
   isSameSender,
@@ -153,7 +154,7 @@ const ScrollableChat = ({ messages }) => {
                     fileType === 'image' ? '#f1f1f1' : 
                     (fileType === 'document') ? '#4E4F50' : 
                     (m.sender._id === user._id ? "#3797F0" : "#4E4F50")
-                  ) : m.content.startsWith('http') ? '#4E4F50' :
+                  ) : m.content.startsWith('http') ? '#111111' :
                   (m.sender._id === user._id ? "#3797F0" : "#4E4F50")
                 }`,
 
@@ -183,9 +184,10 @@ const ScrollableChat = ({ messages }) => {
                   )
                 ) : (
                   m.content.startsWith('http') ? (
-                      <a href={m.content} target="_blank" rel="noopener noreferrer">
-                        {m.content}
-                      </a>
+                      // <a href={m.content} target="_blank" rel="noopener noreferrer">
+                      //   {m.content}
+                      // </a>
+                      <LinkPreviewComponent url={m.content} />
                     
                   ) : (
                     m.content
