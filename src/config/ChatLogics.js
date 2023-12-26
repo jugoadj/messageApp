@@ -1,4 +1,4 @@
-export const isSameSenderMargin = (messages, m, i, userId) => {
+export const isSameSenderMargin = (messages, m, i, userId) => { // vérifie si le message actuel est envoyé par le même utilisateur que le message précédent, et retourne la valeur de la marge gauche appropriée.
   // console.log(i === messages.length - 1);
 
   if (i < messages.length - 1 &&
@@ -24,7 +24,7 @@ export const isSameSender = (messages, m, i, userId) => {
   );
 };
 
-export const isLastMessage = (messages, i, userId) => {
+export const isLastMessage = (messages, i, userId) => {// vérifie si le message actuel est le dernier message du chat, et retourne l'ID de l'utilisateur qui l'a envoyé.
   return (
     i === messages.length - 1 &&
     messages[messages.length - 1].sender._id !== userId &&
@@ -32,13 +32,13 @@ export const isLastMessage = (messages, i, userId) => {
   );
 };
 
-export const isSameUser = (messages, m, i) => {
+export const isSameUser = (messages, m, i) => {// vérifie si le message actuel est envoyé par le même utilisateur que le message précédent, et retourne un booléen.
   return i > 0 && messages[i - 1].sender._id === m.sender._id;
   
   
 };
 
-export const getSender = (loggedUser, users) => {
+export const getSender = (loggedUser, users) => { //
   return users[0]?._id === loggedUser?._id ? users[1].name : users[0].name; 
   //vérifie si le premier utilisateur dans le tableau users est l'utilisateur actuellement connecté, et retourne le nom du deuxième utilisateur si c'est le cas, sinon elle retourne le nom du premier utilisateur.
 };

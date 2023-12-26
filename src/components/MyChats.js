@@ -8,6 +8,8 @@ import ChatLoading from "./ChatLoading";
 // import GroupChatModal from "./miscellaneous/GroupChatModal";
 import { Button } from "@chakra-ui/react";
 import { ChatState } from "../Context/ChatProvider";
+import DeleteIcon from '@mui/icons-material/Delete';
+
 
 const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au composant MyChats. Il est utilisé comme une dépendance pour le Hook useEffect dans ce composan
   const [loggedUser, setLoggedUser] = useState();//crée un état loggedUser avec une valeur initiale non définie. setLoggedUser est la fonction qui sera utilisée pour mettre à jour cet état
@@ -16,6 +18,33 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
 
   const toast = useToast();
 
+  const deleteChat = async () => {  
+    try {
+      const config = {  
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+        console.log(selectedChat)
+      const {data} = await axios.post(
+        `/api/Message/Supp/${selectedChat._id}`,
+         {}, 
+         config
+      );
+      
+    } catch (error) {
+      toast({
+        title: "Error Occured!",
+        description: "Failed to Delete the chat",
+        status: "error",
+        duration: 500,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    }
+  };
+
+  
   const fetchChats = async () => {
     // console.log(user._id);
     try {
@@ -45,6 +74,8 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
       });
     }
   };
+
+    
 
   useEffect(() => { // Hook qui exécute le code à l'intérieur de la fonction chaque fois que fetchAgain change.
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));// il met à jour l'état loggedUser avec les informations de l'utilisateur stockées dans le stockage local, et il appelle la fonction fetchChats
@@ -95,7 +126,7 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
         borderRadius="lg"
         overflowY="hidden"
       >
-        {chats ? ( //si chats est vrai), alors le code à l'intérieur des parenthèses est rendu. Sinon, le composant ChatLoading est rendu.
+        {chats ? ( //chats contient les donnes de l'utilisateur connecté qu'on a recupéré dans la fonction fetchChats
           <Stack overflowY="scroll">
             {chats.map((chat) => ( //boucle qui parcourt chaque chat dans chats et rend un composant Box pour chaque chat.
               <Box
@@ -107,10 +138,12 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
                 py={2}
                 borderRadius="lg"
                 boxShadow="0px 3px 6px #00000029"
-
-
                 key={chat._id}
+                display="flex" // Ajouté pour utiliser Flexbox
+                alignItems="center" // Aligne les éléments verticalement au centre
+                justifyContent="space-between"
               >
+                <div>
                 <Text>
                   {chat.isGroupChat ? chat.chatName : getSender(loggedUser, chat.users)}
 
@@ -136,6 +169,8 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
                     )}
                   </Text>
                 )}
+                </div>
+                <DeleteIcon onClick={() => deleteChat()} />
               </Box>
             ))}
           </Stack>

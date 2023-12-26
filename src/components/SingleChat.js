@@ -3,7 +3,11 @@ import { Box, Text} from "@chakra-ui/layout";
 import { FaRegComment } from "react-icons/fa";
 import { InputGroup, InputRightElement, InputLeftElement} from "@chakra-ui/react";
 import {  FiFile,FiSend, FiSmile } from "react-icons/fi";
-
+import { IoIosMic } from "react-icons/io";
+import Picker from 'emoji-picker-react';
+import React from 'react';
+import { useRef } from 'react';
+import soundFile from './interface-124464.mp3';
 
 import { IconButton , Icon} from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
@@ -27,13 +31,32 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   // const [istyping, setIsTyping] = useState(false);
   const toast = useToast();
 
   const { user, selectedChat, setSelectedChat } = ChatState(); //selectedChat est un objet qui contient les info du chat selectionner
   //Lorsqu'un utilisateur sélectionne un chat dans l'interface utilisateur de notre application, une fonction ( setSelectedChat) 
-  //la valeur de seselectedchat est definie dans Mychats.js
   //est appelée pour mettre à jour la valeur de selectedChat avec les informations du chat sélectionné.
+  //la valeur de seselectedchat est definie dans Mychats.js
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [audioUrl, setAudioUrl] = useState(null);
+
+  const stopAndSendAudio = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      const url = URL.createObjectURL(audioBlob);
+      setAudioUrl(url);
+      const audioElement = document.createElement('audio');
+      audioElement.src = url;
+      // Vous pouvez maintenant utiliser audioElement pour l'afficher dans votre interface utilisateur
+    }
+  };
+
+  const onEmojiClick = (emoji) => {
+    setNewMessage(prevMessage => prevMessage + emoji);
+  };
 
   const fetchMessages = async () => {
     if (!selectedChat) { //Si aucun chat n'est sélectionné, la fonction se termine immédiatement.
@@ -82,7 +105,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   useEffect(() => { // exécuté la fonction fetchMessages chaque fois que selectedChat change
     fetchMessages(); 
 
-    selectedChatCompare = selectedChat;
+    selectedChatCompare = selectedChat; //selectedChatCompare est une variable qui contient les info du chat selectionner
   }, [selectedChat]);
 
   
@@ -99,8 +122,35 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   });
 
-  const sendMessage = async (event) => {
-    if (event.key === "Enter" && newMessage) { //Si l'utilisateur appuie sur la touche "Enter" et qu'il y a un nouveau message (newMessage n'est pas vide)
+  const sendAudio = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mediaRecorder = new MediaRecorder(stream);
+    setMediaRecorder(mediaRecorder);
+    mediaRecorder.start();
+
+    let chunks = [];
+    mediaRecorder.ondataavailable = function(e) {
+      chunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = function(e) {
+      const blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+      setAudioBlob(blob);
+      chunks = [];
+    };
+  };
+
+  
+
+
+  const sendMessage = async (event) => {//La fonction sendMessage est appelée lorsque l'utilisateur appuie sur la touche Entrée ou clique sur le bouton Envoyer.event est l'événement qui déclenche la fonction.
+
+      
+    if ((event.key === "Enter" || event.type === 'click') && newMessage) { 
+      let audio = new Audio(soundFile);
+      audio.play();
+
+      //Si l'utilisateur appuie sur la touche Entrée ou clique sur le bouton Envoyer et que la zone de texte n'est pas vide, la fonction se poursuit.
       // socket.emit("stop typing", selectedChat._id);
       try {
         const config = {
@@ -186,14 +236,14 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             />
             {messages && //Si des messages sont disponibles, le composant affiche le nom de l'expéditeur du dernier message.
 
-              (!selectedChat.isGroupChat ? (
+              (!selectedChat.isGroupChat ? (//si le chat n'est pas un chat de groupe, le composant affiche le nom de l'expéditeur du dernier message.
                 <>
-                  {getSender(user, selectedChat.users)}
-                  <ProfileModal
+                  {getSender(user, selectedChat.users)} 
+                  <ProfileModal  //ProfileModal est un composant qui affiche les informations de l'utilisateur lorsqu'il est cliqué.
                     user={getSenderFull(user, selectedChat.users)}//getSenderFull est une fonction qui renvoie l'objet utilisateur complet de l'expéditeur du dernier message.
                   />
                 </>
-              ) : (
+              ) : (//sinon si le chat est un chat de groupe, le composant affiche le nom du chat.
                 <>
                   {selectedChat.chatName.toUpperCase()}
                   {/* <UpdateGroupChatModal
@@ -223,49 +273,52 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 alignSelf="center"
                 margin="auto"
               />
-            ) : (
+            ) : ( // sinon si loading est false, le composant affiche les messages du chat sélectionné.
               <div className="messages">
                 <ScrollableChat messages={messages} />
               </div>
             )}
 
             <FormControl
-              onKeyDown={sendMessage} //lorsque l'utilisateur appuie sur une touche, la fonction sendMessage est appelée.
+              onKeyDown={sendMessage} //lorsque l'utilisateur appuie sur une touche entrer, la fonction sendMessage est appelée.
               id="first-name"
               isRequired
-              mt={3}
+              mt={3} 
             >
              
-             <InputGroup>
-              
-                <Input
-                  variant="filled"
-                  bg="#3A3B3C"
-                  color={"white"}
-                  placeholder="Enter a message.."
-                  value={newMessage}
-                  onChange={typingHandler}
-                  _hover={{
-                    bg: "#3A3B3C",
-                  }}
-                  _focus={{
-                    borderColor: "transparent",
-                  }}
-                />
-                    <Box display="flex" justifyContent={"space-between"}>
-                      <IconButton aria-label="Fichier" icon={<FiFile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={sendMessage} />
-                      <IconButton aria-label="Emoji" icon={<FiSmile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} />
-                      <IconButton   aria-label="Envoyer" icon={<FiSend />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={sendMessage} />
-                    </Box>
-                
-                
-              </InputGroup>
+            <InputGroup>
+              <Input
+                variant="filled"
+                bg="#3A3B3C"
+                color={"white"}
+                placeholder="Enter a message.."
+                value={newMessage}
+                onChange={typingHandler}
+                _hover={{
+                  bg: "#3A3B3C",
+                }}
+                _focus={{
+                  borderColor: "transparent",
+                }}
+              />
+              <Box display="flex" justifyContent={"space-between"}>
+                <IconButton aria-label="Fichier" icon={<FiFile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }}  />
+                <IconButton aria-label="Emoji" icon={<FiSmile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={() => setShowEmojiPicker(!showEmojiPicker)} />
+                {showEmojiPicker && <Picker onEmojiClick={(_event, emojiObject) => {
+                  console.log(emojiObject);
+                  onEmojiClick(emojiObject.emoji);
+                }} />}
+                <IconButton aria-label="Envoyer" icon={<IoIosMic />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={stopAndSendAudio} />
+                <IconButton aria-label="Envoyer" icon={<FiSend />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={sendMessage}  />
+                {audioUrl && <audio src={audioUrl} controls />}
+              </Box>
+            </InputGroup>
              
 
             </FormControl>
           </Box>
         </>
-      ) : (
+      ) : ( // Si aucun chat n'est sélectionné, le composant affiche un message indiquant qu'aucun chat n'est sélectionné.
         // to get socket.io on same page
         <Box display="flex" alignItems="center" justifyContent="center" h="100%" flexDirection="column">
           <Icon as={FaRegComment} boxSize={10} mb={3} />

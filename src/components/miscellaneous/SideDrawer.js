@@ -187,7 +187,7 @@ function SideDrawer() {
               ))} */}
             </MenuList>
           </Menu>
-          <Menu>
+          <Menu backgroundColor={"4E4F50"} color={"f1f1f1"} >
             <MenuButton as={Button} bg="white" rightIcon={<ChevronDownIcon />}>
               <Avatar
                 size="sm"
@@ -196,7 +196,7 @@ function SideDrawer() {
                 src={user.pic}
               />
             </MenuButton>
-            <MenuList>
+            <MenuList backgroundColor={"4E4F50"} color={"f1f1f1"}>
               <ProfileModal user={user}>
                 <MenuItem>My Profile</MenuItem>{" "}
               </ProfileModal>

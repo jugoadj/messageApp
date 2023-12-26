@@ -2,9 +2,9 @@ import React, { createContext, useContext, useEffect, useState } from "react";//
 import { useHistory } from "react-router-dom";
 
 // on définit un contexte React appelé ChatContext. Ce contexte est utilisé pour partager des données entre différents composants sans avoir à les passer explicitement à travers chaque niveau de l'arborescence des composants.
-const ChatContext = createContext();//
+const ChatContext = createContext(); 
 
-const ChatProvider = ({ children }) => {
+const ChatProvider = ({ children }) => { //chil
   const [selectedChat, setSelectedChat] = useState();  // 
   const [supselectedChat, setSupselectedChat] = useState();  
   const [user, setUser] = useState();
@@ -14,8 +14,8 @@ const ChatProvider = ({ children }) => {
   const history = useHistory();
 
   useEffect(() => { // recupere les données de l'utilisateur et les stocke dans le localstorage
-    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-    setUser(userInfo);
+    const userInfo = JSON.parse(localStorage.getItem("userInfo")); //
+    setUser(userInfo);//setUser(userInfo) met à jour l'état user avec les informations de l'utilisateur stockées dans le stockage local.
 
     if (!userInfo) {
       history.push("/");
@@ -44,7 +44,7 @@ const ChatProvider = ({ children }) => {
 };
 
 export const ChatState = () => { // ChatState est une fonction qui utilise le Hook useContext pour accéder aux valeurs du ChatContext.
-  return useContext(ChatContext);
+  return useContext(ChatContext);//
 };
 
 export default ChatProvider;
