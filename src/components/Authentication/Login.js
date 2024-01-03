@@ -7,6 +7,7 @@ import axios from "axios";
 import { useToast } from "@chakra-ui/react";
 import { useHistory } from "react-router-dom";
 
+
 const Login = () => {
   const [show, setShow] = useState(false);
   const handleClick = () => setShow(!show);
@@ -43,6 +44,7 @@ const Login = () => {
         { email, password },
         config // config est un objet qui contient des en-têtes HTTP pour une requête.
       );
+      
 
       toast({
         title: "Login Successful",
@@ -54,6 +56,8 @@ const Login = () => {
       localStorage.setItem("userInfo", JSON.stringify(data));//stocker les informations de l'utilisateur dans le stockage local
       setLoading(false);
       history.push("/chats");//rediriger l'utilisateur vers la page "/chats"
+                  window.location.reload();
+
     } catch (error) {
       toast({
         title: "Error Occured!",
@@ -65,6 +69,7 @@ const Login = () => {
       });
       setLoading(false);
     }
+    
   };
 
   return (

@@ -19,6 +19,10 @@ const Signup = () => {
   const history = useHistory(); //Utilisation de l'objet history pour rediriger l'utilisateur vers une autre page après une inscription réussie.
 
   const [name, setName] = useState(); //Déclaration d'état local pour stocker le valeur du champs name du formulaire.
+  const [pseudo, setPseudo] = useState(); //Déclaration d'état local pour stocker le valeur du champs name du formulaire.
+  const [secretQuestion, setSecretQuestion] = useState(); //Déclaration d'état local pour stocker le valeur du champs name du formulaire.
+  const [secretAnswer, setSecretAnswer] = useState(); //Déclaration d'état local pour stocker le valeur du champs name du formulaire.
+  const [trustedEmail, setTrustedEmail] = useState(); //Déclaration d'état local pour stocker le valeur du champs name du formulaire.
   const [email, setEmail] = useState();// Déclaration d'état local pour stocker le valeur du champs email du formulaire.
   const [confirmpassword, setConfirmpassword] = useState();
   const [password, setPassword] = useState();
@@ -56,16 +60,20 @@ const Signup = () => {
       });
       return;
     }
-    console.log(name, email, password, pic);
+    console.log(name,pseudo, email, trustedEmail,secretAnswer,secretQuestion, password, pic);
     try {
       const config = {
         headers: {
           "Content-type": "application/json",
         },
       };
-      const { data } = await axios.post( "/api/user",
+      const { data } = await axios.post( "/api/user/register",
         {
           name,
+          pseudo,
+          trustedEmail,
+          secretAnswer,
+          secretQuestion,
           email,
           password,
           pic,
@@ -82,7 +90,7 @@ const Signup = () => {
       });
       localStorage.setItem("userInfo", JSON.stringify(data)); //Enregistre les données de l'utilisateur dans le stockage local du navigateur. Cela permet de persister les données de l'utilisateur même après que la page a été rechargée.
       setPicLoading(false);
-      history.push("/chats"); //Redirige l'utilisateur vers la page "/chats" après une inscription réussie.
+      history.push("/connexion"); //Redirige l'utilisateur vers la page "/chats" après une inscription réussie.
 
 
     } catch (error) {
@@ -159,12 +167,48 @@ const Signup = () => {
        //apres cest la nouvelle valeur de setname qui sera utiliser pour la bdd etc
        />
       </FormControl> 
+      <FormControl id="pseudo" isRequired>
+        <FormLabel>Pseudo</FormLabel>
+        <Input
+          placeholder="Enter Your Pseudo"
+          onChange={(e) => setPseudo(e.target.value)} //onchange un événement qui est déclenché chaque fois que la valeur d'un élément de formulaire change. Dans le contexte d'un champ de saisie (<Input />), cela se produit lorsque l'utilisateur tape ou modifie le texte dans le champ.
+          // setEmail est une fonction de mise à jour de l'état locale déclarée avec useState pour mettre à jour la valeur de l'état associé à name. Lorsque la fonction setname est appelée avec la nouvelle valeur de name (e.target.value), elle met à jour la valeur de l'état, et cette valeur est alors utilisée dans le rendu du composant.
+          //e.target.value donne la valeur actuelle de l'élément qui a déclenché l'événement.(onchange) Pour les champs de saisie (<input>, <textarea>
+        // onChange du composant <Input>. Elle prend l'événement e en paramètre, extrait la valeur du champ d'entrée avec e.target.value, et met à jour l'état email à l'aide de la fonction setEmail.
+       //apres cest la nouvelle valeur de setname qui sera utiliser pour la bdd etc
+       />
+      </FormControl> 
       <FormControl id="email" isRequired>
         <FormLabel>Email Address</FormLabel>
         <Input
           type="email"
           placeholder="Enter Your Email Address"
           onChange={(e) => setEmail(e.target.value)}
+        />
+      </FormControl>
+
+      <FormControl id="email" isRequired>
+        <FormLabel>Trusted Email</FormLabel>
+        <Input
+          type="email"
+          placeholder="Enter Your TRUSTED Email Address"
+          onChange={(e) => setTrustedEmail(e.target.value)}
+        />
+      </FormControl>
+      <FormControl id="text" isRequired>
+        <FormLabel>secretQuestion</FormLabel>
+        <Input
+          type="email"
+          placeholder="Enter Your SECRET QUESTION"
+          onChange={(e) => setSecretQuestion(e.target.value)}
+        />
+      </FormControl>
+      <FormControl id="email" isRequired>
+        <FormLabel>secretAnswer</FormLabel>
+        <Input
+          type="email"
+          placeholder="Enter Your SECRET ANSWER"
+          onChange={(e) => setSecretAnswer(e.target.value)}
         />
       </FormControl>
       <FormControl id="password" isRequired>

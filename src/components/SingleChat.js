@@ -42,6 +42,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
+  
 
   const stopAndSendAudio = () => {
     if (mediaRecorder) {
@@ -174,7 +175,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
         socket.emit("new message", data);
 
+
         setMessages([...messages, data]); //met à jour l'état messages avec les messages actuels plus le nouveau message.
+
       } catch (error) {
         toast({
           title: "Error Occured!",

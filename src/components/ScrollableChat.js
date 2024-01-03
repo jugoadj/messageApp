@@ -52,7 +52,7 @@ const ScrollableChat = ({ messages }) => {//messages contient les donnes de l'ut
 
   return (
     <ScrollableFeed>
-      {messages &&//
+      {messages && 
         messages.map((m, i) => {//boucle qui parcourt chaque message dans messages et rend un composant Box pour chaque message.
             let fileUrl = '';
             let fileType = 'unknown'; // Définir fileType par défaut à 'unknown'

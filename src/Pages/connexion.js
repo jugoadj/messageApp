@@ -25,7 +25,9 @@ function Connexion() {
     //history et est ajouté comme dépendance à useEffect
     const user = JSON.parse(localStorage.getItem("userInfo"));// userInfo est une clé dans le stockage local qui contient les informations de l'utilisateur connecté on la creee dans login.js. le loca
 
-    if (user) history.push("/chats"); //si l'utilisateur est connecté (ses info userinfo sont dans le localstorage) on le redirige vers la page chats
+    if (user) {
+      history.push("/chats");
+    } //si l'utilisateur est connecté (ses info userinfo sont dans le localstorage) on le redirige vers la page chats
   }, [history]);
 
   return ( //la fonction connexion retourne Contenu JSX : Le reste de la fonction définit la structure de la page. Il utilise des composants de mise en page tels que 

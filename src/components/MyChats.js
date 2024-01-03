@@ -9,6 +9,8 @@ import ChatLoading from "./ChatLoading";
 import { Button } from "@chakra-ui/react";
 import { ChatState } from "../Context/ChatProvider";
 import DeleteIcon from '@mui/icons-material/Delete';
+import io from 'socket.io-client';
+
 
 
 const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au composant MyChats. Il est utilisé comme une dépendance pour le Hook useEffect dans ce composan
@@ -17,6 +19,8 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
   const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState(); //utilise le Hook useContext pour accéder à plusieurs états du contexte ChatState.
 
   const toast = useToast();
+    const socket = io('http://localhost:5000'); // Remplacez 'http://localhost:5000' par l'URL de votre serveur
+
 
   const deleteChat = async () => {  
     try {
@@ -75,13 +79,17 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
     }
   };
 
-    
 
   useEffect(() => { // Hook qui exécute le code à l'intérieur de la fonction chaque fois que fetchAgain change.
     setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));// il met à jour l'état loggedUser avec les informations de l'utilisateur stockées dans le stockage local, et il appelle la fonction fetchChats
     fetchChats(); // la fonction fetchChats qui sert a récupérer les chats de l'utilisateur connecté
     // eslint-disable-next-line
+    // 
   }, [fetchAgain]);
+  
+  useEffect(() => {
+    fetchChats();
+  }, []);
 
   return (
     <Box
