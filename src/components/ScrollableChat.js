@@ -6,6 +6,12 @@ import { Avatar } from "@chakra-ui/avatar";
 import { Tooltip } from "@chakra-ui/tooltip";
 import ScrollableFeed from "react-scrollable-feed";
 import LinkPreviewComponent from '../components/LinkPreviewComponent';
+import React, { useState } from 'react';
+import DeleteIcon from '@mui/icons-material/Delete';
+import axios from "axios";
+import { useToast } from "@chakra-ui/toast";
+
+
 
 import {
   isLastMessage,
@@ -15,11 +21,52 @@ import {
 } from "../config/ChatLogics";
 import { ChatState } from "../Context/ChatProvider";
 
+
 const ScrollableChat = ({ messages }) => {//messages contient les donnes de l'utilisateur connecté qu'on a recupéré dans la fonction fetchMessages dans singleChat.js
   const { user } = ChatState();
   const serverUrl = 'http://localhost:5000'; // Remplacez ceci par l'URL de votre serveur
-  
+  const [hoveredMessage, setHoveredMessage] = useState(null);
+  const [clickedMessageId, setClickedMessageId] = useState(null);
+const [chatMessages, setChatMessages] = useState([]);
 
+  const toast = useToast();
+
+  
+function dataURItoBlob(dataURI) {
+  var byteString = atob(dataURI.split(',')[1]);
+  var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+  var ab = new ArrayBuffer(byteString.length);
+  var ia = new Uint8Array(ab);
+  for (var i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], {type: mimeString});
+}
+ const handleDelete = async (id) => {
+  console.log('handleDelete called with id:', id);
+  if (!id) {
+    console.log('id is not defined');
+    return;
+  }
+  console.log('id:', id);
+  try {
+    const config = {  
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+    const {data} = await axios.get(
+      `/api/Message/Supp/${id}`,
+      {}, 
+      config
+    );
+    console.log('delete request successful, data:', data);
+        setChatMessages(messages.filter(message => message._id !== id));
+
+  } catch (error) {
+    console.log('delete request failed, error:', error.response ? error.response.data : error.message);
+  }
+};
 
   function getFileType(file) {
     const extension = file.split('.').pop();
@@ -43,8 +90,12 @@ const ScrollableChat = ({ messages }) => {//messages contient les donnes de l'ut
       case 'avi':
       case 'mov':
       case 'flv':
-      case 'mp3':
+      
         return 'video';
+      case 'mp3':
+      case 'wav':
+      case 'ogg':
+        return 'audio';
       default:
         return 'unknown';
     }
@@ -68,7 +119,7 @@ const ScrollableChat = ({ messages }) => {//messages contient les donnes de l'ut
 
 
           return (
-            <div style={{ display: "flex" }} key={m._id}>
+            <div style={{ display: "flex", alignItems: "center", position: 'relative' }} key={m._id} >
               {(isSameSender(messages, m, i, user._id) || 
                 isLastMessage(messages, i, user._id)) && (
                 <Tooltip label={m.sender.name} placement="bottom-start" hasArrow>
@@ -81,18 +132,23 @@ const ScrollableChat = ({ messages }) => {//messages contient les donnes de l'ut
                     src={m.sender.pic}
                   />
                 </Tooltip>
+
+
               )}
+
+
               <span
                 style={{
                 backgroundColor: `${
                   m.file ? (
-                    fileType === 'image' ? '#f1f1f1' : 
-                    (fileType === 'document') ? '#4E4F50' : 
-                    (fileType === 'video') ? 'transparent' :
-                    (fileType === 'audio') ? 'transparent' :
-                    (m.sender._id === user._id ? "#3797F0" : "#4E4F50")
+                    fileType === 'image' ? 'transparent' : 
+                    fileType === 'document' ? '#4E4F50' : 
+                    fileType === 'video' ? 'transparent' :
+                    fileType === 'audio' ? 'transparent' :
+                    "#4E4F50"
                   ) : m.content.startsWith('http') ? '#111111' :
-                  (m.sender._id === user._id ? "#3797F0" : "#4E4F50")
+                  (m.content.startsWith('data:audio') ? 'transparent' : 
+                  (m.sender._id === user._id ? "#3797F0" : "#4E4F50"))
                 }`,
 
                 color: `${m.sender._id === user._id ? "white" : "white"}`,
@@ -105,33 +161,32 @@ const ScrollableChat = ({ messages }) => {//messages contient les donnes de l'ut
 
                 maxWidth: "75%",
               }}
+              onMouseEnter={() => setHoveredMessage(m._id)}
+              onMouseLeave={() => setHoveredMessage(null)}
               >
+{m._id === hoveredMessage && <DeleteIcon className="icon-hover" style={{ width:'20px' }} onClick={() => handleDelete(m._id)} />}          
+
                  {m.file ? (
                     console.log(m.createdAt),
                     fileType === 'image' ? (
-                      <div style={{ position: 'relative', width: '175px' }}>
-                          <a href={`${serverUrl}/${m.file.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer">
-                            <img src={`${serverUrl}/${m.file.replace(/\\/g, '/')}`} alt="Message content" style={{width: "100%", transition: '0.3s'}} onMouseOver={(e) => {e.currentTarget.style.filter = 'blur(2px)'; document.getElementById(`date-${i}`).style.display = 'block';}} onMouseOut={(e) => {e.currentTarget.style.filter = 'none'; document.getElementById(`date-${i}`).style.display = 'none';}} />
-                            <div id={`date-${i}`} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#fff', display: 'none', color:"#111111" }}>{`envoyé le : ${new Date(m.createdAt).toLocaleString()}`}</div>
-                          </a>
+                      <div style={{ position: 'relative', width: '300px' }}>
+                        <a href={`${serverUrl}/${m.file.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer">
+                        <div style={{ position: 'relative' }} onMouseEnter={(e) => {document.getElementById(`img-${i}`).style.filter = 'blur(2px)'; document.getElementById(`date-${i}`).style.display = 'block';}} onMouseLeave={(e) => {document.getElementById(`img-${i}`).style.filter = 'none'; document.getElementById(`date-${i}`).style.display = 'none';}}>
+                          <img id={`img-${i}`} src={`${serverUrl}/${m.file.replace(/\\/g, '/')}`} alt="Message content" style={{width: "100%", transition: '0.3s'}} />
+                          <div id={`date-${i}`} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#fff', display: 'none', color:"#111111" }}>{`send : ${new Date(m.createdAt).toLocaleString()}`}</div>
                         </div>
+                      </a>
+                      </div>
                       ) : fileType === 'video' ? (
-                        <div style={{ position: 'relative', width: '175px', borderRadius:"10px 10px 10px 10px", boxShadow:"0px 3px 6px #111111" }}>
+                        <div style={{ position: 'relative', width: '300px', borderRadius:"10px 10px 10px 10px", boxShadow:"0px 3px 6px #111111" }}>
                           <video controls style={{width: "100%", transition: '0.3s'}} onMouseOver={(e) => {e.currentTarget.style.filter = 'blur(2px)'; document.getElementById(`date-${i}`).style.display = 'block';}} onMouseOut={(e) => {e.currentTarget.style.filter = 'none'; document.getElementById(`date-${i}`).style.display = 'none';}}>
                             <source src={`${serverUrl}/${m.file.replace(/\\/g, '/')}`} type="video/mp4" />
                             Your browser does not support the video tag.
-                            <div id={`date-${i}`} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#fff', display: 'none', color:"#111111" }}>{`envoyé le : ${new Date(m.createdAt).toLocaleString()}`}</div>
+                            <div id={`date-${i}`} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#fff', display: 'none', color:"#111111" }}>{`send  : ${new Date(m.createdAt).toLocaleString()}`}</div>
 
                           </video>
                         </div>
-                    ) : fileType === 'audio' ? (
-                        <div style={{ position: 'relative', width: '175px', borderRadius:"10px 10px 10px 10px", boxShadow:"0px 3px 6px #111111" }}>
-                          <audio style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls>
-                            <source src={fileUrl} type="audio/mp3" />
-                          </audio>
-                        </div>
-
-                    ) : (
+                    )  : (
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         <FaFilePdf size={20} />
                         <a href={`${serverUrl}/${m.file.replace(/\\/g, '/')}`} download>
@@ -140,16 +195,25 @@ const ScrollableChat = ({ messages }) => {//messages contient les donnes de l'ut
                       </div>
                     )
                   ) : (
-                    m.content.startsWith('http') ? (
-                      <LinkPreviewComponent url={m.content} />
-                    ) : (
-                      m.content
-                    )
-                  )}
+                     
+                        m.content.startsWith('data:audio') ? (
+                        <div style={{ position: 'relative', width: '175px', height: '50px', borderRadius:"10px 10px 10px 10px" }}>
+                          <audio style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls>
+                            <source src={m.content} />
+                          </audio>
+                        </div>
+                      ) : (
+                        m.content
+                      )
+                      )
+                    }
+                
+                    
               </span>
             </div>
           );
         })}
+     
     </ScrollableFeed>
   );
 };

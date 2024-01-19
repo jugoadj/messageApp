@@ -78,7 +78,7 @@ function SideDrawer() {
         },
       };
 
-      const { data } = await axios.get(`/api/user?search=${search}`, config);
+      const { data } = await axios.get(`/api/user?search=${search}`, config);// 
 
       setLoading(false);
       setSearchResult(data);
@@ -157,7 +157,7 @@ function SideDrawer() {
           </Button>
         </Tooltip>
         <Text fontSize="2xl" fontFamily="Work sans">
-          Snails
+          
           
 
         </Text>

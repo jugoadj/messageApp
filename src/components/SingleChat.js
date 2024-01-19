@@ -20,11 +20,15 @@ import { Spinner, useToast} from "@chakra-ui/react";
 import ScrollableChat from "./ScrollableChat";
 import axios from "axios";
 import io from "socket.io-client";
+import { Alert, AlertDescription, AlertIcon, AlertTitle } from "@chakra-ui/react";
 
 const ENDPOINT = "http://localhost:5000"; // URL du serveur Socket.IO
 var  socket, selectedChatCompare;
 //..
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
+  const [audioUrl, setAudioUrl] = useState(null);
+  
+
 
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -34,26 +38,55 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   // const [istyping, setIsTyping] = useState(false);
   const toast = useToast();
-
+  
   const { user, selectedChat, setSelectedChat } = ChatState(); //selectedChat est un objet qui contient les info du chat selectionner
   //Lorsqu'un utilisateur sélectionne un chat dans l'interface utilisateur de notre application, une fonction ( setSelectedChat) 
   //est appelée pour mettre à jour la valeur de selectedChat avec les informations du chat sélectionné.
   //la valeur de seselectedchat est definie dans Mychats.js
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [audioUrl, setAudioUrl] = useState(null);
+ 
+  let mediaRecorder;
+let recordedChunks = [];
   
 
-  const stopAndSendAudio = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
-      const url = URL.createObjectURL(audioBlob);
-      setAudioUrl(url);
-      const audioElement = document.createElement('audio');
-      audioElement.src = url;
-      // Vous pouvez maintenant utiliser audioElement pour l'afficher dans votre interface utilisateur
-    }
-  };
+  const startRecording = () => {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.start();
+
+      mediaRecorder.addEventListener('dataavailable', function(e) {
+        recordedChunks.push(e.data);
+      });
+    });
+}
+
+
+const stopAndDisplayAudio = async () => {
+  if (mediaRecorder) {
+    mediaRecorder.stop();
+
+    // Attendre que l'enregistrement soit terminé
+    mediaRecorder.addEventListener('stop', async function() {
+      let audioBlob = new Blob(recordedChunks, { type: 'audio/wav' });
+
+      recordedChunks = [];
+
+      let reader = new FileReader();
+      reader.readAsDataURL(audioBlob); 
+      reader.onloadend = function() {
+        let base64data = reader.result;                
+
+        // Créer un nouvel élément audio et le jouer
+        let audio = new Audio(base64data);
+        audio.play();
+
+        // Mettre à jour l'URL de l'audio
+        setNewMessage(base64data);
+      }
+    });
+  }
+}
+
 
   const onEmojiClick = (emoji) => {
     setNewMessage(prevMessage => prevMessage + emoji);
@@ -86,14 +119,22 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
 
     } catch (error) {
-      toast({
-        title: "Error Occured!",
-        description: "Failed to Load the Messages",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom",
-      });
+      if (!toast.isActive("error-toast")) {
+        toast.closeAll();
+        toast({
+          id: "error-toast",
+          render: () => (
+            <Alert status="error" colorScheme="red" fontSize="sm">
+              <AlertIcon />
+              <AlertTitle mr={2}>Error Occured!</AlertTitle>
+              <AlertDescription>Failed to loads the chats</AlertDescription>
+            </Alert>
+          ),
+          duration: 2500,
+          isClosable: true,
+          position: "bottom-left",
+        });
+      }
     }
   };
 
@@ -123,24 +164,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   });
 
-  const sendAudio = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mediaRecorder = new MediaRecorder(stream);
-    setMediaRecorder(mediaRecorder);
-    mediaRecorder.start();
-
-    let chunks = [];
-    mediaRecorder.ondataavailable = function(e) {
-      chunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = function(e) {
-      const blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
-      setAudioBlob(blob);
-      chunks = [];
-    };
-  };
-
+ 
   
 
 
@@ -179,14 +203,22 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         setMessages([...messages, data]); //met à jour l'état messages avec les messages actuels plus le nouveau message.
 
       } catch (error) {
-        toast({
-          title: "Error Occured!",
-          description: "Failed to send the Message",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "bottom",
-        });
+        if (!toast.isActive("error-toast")) {
+          toast.closeAll();
+          toast({
+            id: "error-toast",
+            render: () => (
+              <Alert status="error" colorScheme="red" fontSize="sm">
+                <AlertIcon />
+                <AlertTitle mr={2}>Error Occured!</AlertTitle>
+                <AlertDescription>Failed to loads the chats</AlertDescription>
+              </Alert>
+            ),
+            duration: 2500,
+            isClosable: true,
+            position: "bottom-left",
+          });
+        }
       }
     }
   };
@@ -288,35 +320,42 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               isRequired
               mt={3} 
             >
-             
             <InputGroup>
-              <Input
-                variant="filled"
-                bg="#3A3B3C"
-                color={"white"}
-                placeholder="Enter a message.."
-                value={newMessage}
-                onChange={typingHandler}
-                _hover={{
-                  bg: "#3A3B3C",
-                }}
-                _focus={{
-                  borderColor: "transparent",
-                }}
-              />
-              <Box display="flex" justifyContent={"space-between"}>
-                <IconButton aria-label="Fichier" icon={<FiFile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }}  />
-                <IconButton aria-label="Emoji" icon={<FiSmile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={() => setShowEmojiPicker(!showEmojiPicker)} />
-                {showEmojiPicker && <Picker onEmojiClick={(_event, emojiObject) => {
-                  console.log(emojiObject);
-                  onEmojiClick(emojiObject.emoji);
-                }} />}
-                <IconButton aria-label="Envoyer" icon={<IoIosMic />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={stopAndSendAudio} />
-                <IconButton aria-label="Envoyer" icon={<FiSend />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={sendMessage}  />
-                {audioUrl && <audio src={audioUrl} controls />}
-              </Box>
-            </InputGroup>
-             
+ <InputGroup>
+  <Input
+    variant="filled"
+    bg="#3A3B3C"
+    color={"white"}
+    placeholder="Enter a message.."
+    value={newMessage.startsWith('data:audio') ? '' : newMessage} // 
+    onChange={typingHandler}
+    _hover={{
+      bg: "#3A3B3C",
+    }}
+    _focus={{
+      borderColor: "transparent",
+    }}
+  />
+  {newMessage.startsWith('data:audio') && (
+    <div style={{ width: '100%' }}>
+      <audio style={{ width: '100%' }} src={newMessage} controls />
+    </div>
+  )}
+</InputGroup>
+<Box display="flex" justifyContent={"space-between"}></Box>
+   
+  <Box display="flex" justifyContent={"space-between"}>
+    <IconButton aria-label="Fichier" icon={<FiFile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }}  />
+    <IconButton aria-label="Emoji" icon={<FiSmile />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={() => setShowEmojiPicker(!showEmojiPicker)} />
+    {showEmojiPicker && <Picker onEmojiClick={(_event, emojiObject) => {
+      console.log(emojiObject);
+      onEmojiClick(emojiObject.emoji);
+    }} />}
+    <IconButton aria-label="Envoyer" icon={<IoIosMic />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onMouseDown={startRecording} onMouseUp={stopAndDisplayAudio} />
+    <IconButton aria-label="Envoyer" icon={<FiSend />} color={"white"} bg="3A3B3C" _hover={{ bg: "3A3B3C" }} onClick={sendMessage}  />
+  </Box>
+</InputGroup>
+        
 
             </FormControl>
           </Box>

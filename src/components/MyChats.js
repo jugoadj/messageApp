@@ -10,6 +10,7 @@ import { Button } from "@chakra-ui/react";
 import { ChatState } from "../Context/ChatProvider";
 import DeleteIcon from '@mui/icons-material/Delete';
 import io from 'socket.io-client';
+import { Alert, AlertDescription, AlertIcon, AlertTitle } from "@chakra-ui/react";
 
 
 
@@ -17,12 +18,17 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
   const [loggedUser, setLoggedUser] = useState();//crée un état loggedUser avec une valeur initiale non définie. setLoggedUser est la fonction qui sera utilisée pour mettre à jour cet état
 
   const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState(); //utilise le Hook useContext pour accéder à plusieurs états du contexte ChatState.
-
+  
+  
   const toast = useToast();
-    const socket = io('http://localhost:5000'); // Remplacez 'http://localhost:5000' par l'URL de votre serveur
+  
+  const socket = io('http://localhost:5000'); // Remplacez 'http://localhost:5000' par l'URL de votre serveur
 
 
-  const deleteChat = async () => {  
+  const deleteChat = async () => {
+        if (!selectedChat) { //Si aucun chat n'est sélectionné, la fonction se termine immédiatement.
+      return;
+    } 
     try {
       const config = {  
         headers: {
@@ -30,21 +36,33 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
         },
       };
         console.log(selectedChat)
-      const {data} = await axios.post(
+      const {data} = await axios.delete(
         `/api/Message/Supp/${selectedChat._id}`,
          {}, 
          config
       );
       
     } catch (error) {
+          console.log(error.response ? error.response.data : error.message);
+
+    if (!toast.isActive("error-toast")) {
+      toast.closeAll();
       toast({
-        title: "Error Occured!",
-        description: "Failed to Delete the chat",
-        status: "error",
-        duration: 500,
+        id: "error-toast",
+        render: () => (
+          <Alert status="error" colorScheme="red" fontSize="sm">
+            <AlertIcon />
+            <AlertTitle mr={2}>Error Occured!</AlertTitle>
+            <AlertDescription>Failed to delete the chat</AlertDescription>
+          </Alert>
+        ),
+        duration: 2500,
         isClosable: true,
         position: "bottom-left",
       });
+            console.log(error)
+
+    }
     }
   };
 
@@ -68,14 +86,22 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
 
       setChats(data); //met à jour l'état chats avec les données reçues
     } catch (error) {
-      toast({
-        title: "Error Occured!",
-        description: "Failed to Load the chats",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom-left",
-      });
+     if (!toast.isActive("error-toast")) {
+        toast.closeAll();
+        toast({
+          id: "error-toast",
+          render: () => (
+            <Alert status="error" colorScheme="red" fontSize="sm">
+              <AlertIcon />
+              <AlertTitle mr={2}>Error Occured!</AlertTitle>
+              <AlertDescription>Failed to loads the chats</AlertDescription>
+            </Alert>
+          ),
+          duration: 2500,
+          isClosable: true,
+          position: "bottom-left",
+        });
+      }
     }
   };
 
@@ -156,29 +182,30 @@ const MyChats = ({ fetchAgain }) => { //fetchAgain est une prop passée au compo
                   {chat.isGroupChat ? chat.chatName : getSender(loggedUser, chat.users)}
 
                 </Text>
-               {chat.latestMessage && (
+                {chat.latestMessage && (
                   <Text fontSize="xs">
-                    
-
-                    {chat.latestMessage.file ? (
-                      chat.latestMessage.file.match(/\.(jpeg|jpg|gif|png)$/) != null ? (
-                        <p>{chat.latestMessage.sender.name} vous a envoyé une photo ({chat.latestMessage.file.split('.').pop()})</p>
-                      ) : (
-                        <p>{chat.latestMessage.sender.name} vous a envoyé un document ({chat.latestMessage.file.split('.').pop()})</p>
-                      )
+                  {chat.latestMessage.file ? (
+                    chat.latestMessage.file.match(/\.(jpeg|jpg|gif|png)$/) != null ? (
+                      <span>{chat.latestMessage.sender.name} vous a envoyé une photo</span>
                     ) : (
-                      chat.latestMessage.content ? (
-                        <p>
-                          {chat.latestMessage.content.length > 50 
-                            ? chat.latestMessage.content.substring(0, 51) + "..." 
-                            : chat.latestMessage.content}
-                        </p>
-                      ) : null
-                    )}
-                  </Text>
+                      <span>{chat.latestMessage.sender.name} vous a envoyé un document</span>
+                    )
+                  ) : chat.latestMessage.content.startsWith('data:audio') ? (
+                    <span>{chat.latestMessage.sender.name} vous a envoyé un audio</span>
+                  ) : chat.latestMessage.content.startsWith('data:video') ? (
+                    <span>{chat.latestMessage.sender.name} vous a envoyé une vidéo</span>
+                  ) : chat.latestMessage.content.startsWith('http') ? (
+                    <span>{chat.latestMessage.sender.name} vous a envoyé un lien</span>
+                                                                                                                                                                                                                                                                                                                                                  ) : (
+                    <span>{chat.latestMessage.sender.name} : {chat.latestMessage.content.length > 50 
+                            ? chat.latestMessage.content.substring(0, 35) + "..." 
+                            : chat.latestMessage.content}</span>
+                  )}
+                </Text>
                 )}
+                    
                 </div>
-                <DeleteIcon onClick={() => deleteChat()} />
+                <DeleteIcon  onClick={() => deleteChat()} selectedChat />
               </Box>
             ))}
           </Stack>
